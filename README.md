@@ -1,21 +1,14 @@
-Linux-Troubleshooting/
-│
-├── README.md
-├── cases/
-│   ├── ssh-connection-refused/
-│   │   ├── README.md
-│   │   └── notes.txt
-│   │
-│   ├── disk-space-full/
-│   │   ├── README.md
-│   │
-│   ├── permission-denied/
-│   │   ├── README.md
-│
-├── scripts/
-│   ├── check_disk.sh
-│   ├── fix_permissions.sh
-│
-└── assets/
-    ├── ssh-error.png
-    ├── disk-usage.png
+## 🧪 Troubleshooting Cases
+
+This repository is organized into real-world scenarios.
+
+Each case includes:
+- problem description  
+- diagnosis steps  
+- commands used  
+- final solution  
+
+### Cases:
+- SSH connection refused  
+- Disk space full  
+- Permission denied  
