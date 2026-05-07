@@ -53,3 +53,53 @@ passwordauthentication no
 kbdinteractiveauthentication no
 ```
 
+## Root Cause
+
+All authentication methods were disabled:
+
+*Public key authentication*: disabled
+*Password authentication*: disabled
+*Keyboard-interactive authentication*: disabled
+
+Result:
+
+→ No valid authentication method available
+→ SSH login impossible
+
+### Why ssh-copy-id failed
+```bash
+ssh-copy-id user@<server_ip>
+```
+Requires working authentication (usually password). Server rejected all authentication attempts.
+
+Result is that public key could not be installed
+
+Process:
+1. Connects to the server using SSH.
+2. Authenticates (e.g. with password)
+3. Appends the public key to 
+
+```bash
+~/.ssh/authorized_keys
+```
+No authentication method working = connection is rejected
+
+## Recovery
+
+Access server/VM via console and restore at leat one authentication method in:
+
+```bash
+/etc/ssh/sshd_config
+```
+Then restart ssh. Login should succed after restoring a valid authentication method.
+
+## Prevention
+- always test ssh access before applying changes
+- keep at least one working login method
+
+## Key Takeaways
+- SSH can be fully locked down by misconfiguration
+- authentication methods must be explicitly enabled
+- *sshd -T* is useful for veryfing effective configuration
+- Tools like ssh-copy-id depend on working authentication
+- Misleading prompts (password request) can be distracting
