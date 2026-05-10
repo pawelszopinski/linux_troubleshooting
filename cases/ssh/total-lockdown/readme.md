@@ -100,7 +100,20 @@ Reason:
 Only DEBUG level revealed the authentication negotiation process.
 
 Conclusion:
-Log verbosity usefulness depends on the system state, not only on configuration level. It should be used with cautios due to possible data leak.
+Log verbosity usefulness depends on the system state, not only on configuration level. 
+
+### Security consideration – debug logging
+
+Enabling DEBUG2 revealed detailed authentication data, including:
+
+- username
+- public key fingerprint used during login
+
+This confirms that high debug levels expose sensitive authentication metadata.
+
+For this reason:
+- DEBUG levels should only be used temporarily
+- logs should be reviewed and cleaned if necessary after debugging
 
 ## Root Cause
 
