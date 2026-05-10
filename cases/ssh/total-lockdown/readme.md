@@ -1,8 +1,11 @@
-# SSH Total Lockout (All Authentication Methods Disabled)
+# SSH Authentication Lockout Incident
+
+## Intent
+Harden SSH access by restricting authentication methods (disabling password login and relying solely on SSH keys).
 
 ## Problem
 
-Lost all SSH access to a Linux server after modifying authentication settings.
+After applying SSH security changes, remote access to the server became unavailable.
 
 Connection attempt:
 
@@ -28,20 +31,10 @@ Even when using the correct password.
 - Password authentication was also disabled
 - Changes applied without verifying access
 
-## Quick Setup (minimal)
-
-```bash
-sudo apt install openssh-server
-sudo systemctl enable --now ssh
-
-ssh-keygen
-ssh-copy-id user@<server_ip>
-ssh user@<server_ip>
-```
 
 ## Investigation
 
-Check effective configuration:
+1. Check effective configuration:
 ```bash
 sudo sshd -T
 ```
@@ -52,6 +45,62 @@ pubkeyauthentication no
 passwordauthentication no
 kbdinteractiveauthentication no
 ```
+2. Log analysis
+
+```bash
+journalctl -u ssh
+journalctl -u ssh -f
+```
+Findings:
+
+```bash
+Connection closed by authenticating user user <ip_address>
+```
+This indicated:
+- daemon was running
+- attempts were reaching the erver
+- sessions was terminated during auth phase
+
+However, logs at default level (LogLevel INFO) did not provide enough detail to identify the exact cause.
+3. Increasing log verbosity
+
+To gain deeper insight, logging level can be increased:
+
+In sshd_config let's change LogLevel:
+
+```bash
+LogLevel DEBUG
+```
+4. Authentication negotiation analysis
+
+Using increased log verbosity revealed authentication attempts:
+
+- publickey  
+- keyboard-interactive  
+- password  
+
+All methods were attempted by the client but rejected by the server.
+
+This confirmed that:
+
+- SSH connection and handshake were successful  
+- authentication phase was reached  
+- no authentication methods were allowed by configuration  
+
+**Result: authentication failure was caused by configuration, not connectivity or credentials**
+
+### Logging behavior observation
+
+Increasing LogLevel to VERBOSE did not provide additional insights.
+
+Reason:
+- no authentication methods were enabled
+- therefore no additional authentication details were available to log
+
+Only DEBUG level revealed the authentication negotiation process.
+
+Conclusion:
+Log verbosity usefulness depends on the system state, not only on configuration level. It should be used with cautios due to possible data leak.
 
 ## Root Cause
 
@@ -103,3 +152,6 @@ Then restart ssh. Login should succed after restoring a valid authentication met
 - *sshd -T* is useful for veryfing effective configuration
 - Tools like ssh-copy-id depend on working authentication
 - Misleading prompts (password request) can be distracting
+
+Authentication was failing not because of incorrect credentials, 
+but because no authentication methods were allowed by the SSH configuration.
